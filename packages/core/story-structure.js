@@ -37,6 +37,7 @@ const s = [
           { n: 'Tag set', s: ['c/TagSet'] },
           { n: 'Cards', s: ['c/ExpressiveCard', 'c/ProductiveCard'] },
           { n: 'Modified tabs', s: ['c/ModifiedTabs'] },
+          { n: 'Nav', s: ['c/Nav'] },
           { n: 'Options tile', s: ['c/OptionsTile'] },
           { n: 'Page header', s: ['c/PageHeader'] },
           { n: 'Side panel', s: ['c/SidePanel'] },

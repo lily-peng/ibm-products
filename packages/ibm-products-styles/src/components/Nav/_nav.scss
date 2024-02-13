@@ -1,0 +1,242 @@
+//
+// Copyright IBM Corp. 2024, 2024
+//
+// This source code is licensed under the Apache-2.0 license found in the
+// LICENSE file in the root directory of this source tree.
+//
+
+// Standard imports.
+@use '../../global/styles/project-settings' as c4p-settings;
+@use '../../global/styles/mixins';
+
+// Other Carbon settings if needed
+@use '@carbon/react/scss/colors' as *;
+// @use '@carbon/layout/scss/convert' as *;
+@use '@carbon/styles/scss/spacing' as *;
+@use '@carbon/styles/scss/theme' as *;
+@use '@carbon/styles/scss/type' as *;
+@use '@carbon/styles/scss/utilities';
+@use '@carbon/styles/scss/motion' as *;
+
+// Nav uses the following Carbon for IBM Products components:
+// TODO: @use(s) of IBM Products component styles used by Nav
+
+// The block part of our conventional BEM class names (blockClass__E--M).
+$block-class: #{c4p-settings.$pkg-prefix}--nav;
+$nav__heading: #{$block-class}__heading;
+$nav__list: #{$block-class}__list;
+$nav-item: #{$block-class}-item;
+
+$nav__icon__position: translate3d(-50%, 0, 0);
+
+@mixin rtl {
+  $rtl: '[dir="rtl"]';
+
+  &#{$rtl},
+  #{$rtl} & {
+    @content;
+  }
+}
+
+.#{$block-class} {
+  position: relative;
+}
+
+.#{$block-class}:not(:first-of-type) {
+  padding-top: $spacing-05;
+}
+.#{$block-class}:not(:last-of-type) {
+  padding-bottom: $spacing-05;
+}
+.#{$block-class} + .#{$block-class} > #{$nav__heading} {
+  padding-top: $spacing-02;
+}
+
+.#{$block-class}::before {
+  position: absolute;
+  right: $spacing-07;
+  bottom: 0;
+  left: $spacing-07;
+  display: inline-block;
+  width: auto;
+  border-bottom: 1px solid $layer-02;
+  content: '';
+}
+
+.#{$block-class}:last-of-type::before {
+  border-width: 0;
+}
+.#{$block-class}__wrapper {
+  padding-left: initial;
+  margin-top: initial;
+  margin-bottom: initial;
+  list-style: none;
+  @include rtl {
+    padding-right: initial;
+  }
+}
+.#{$block-class}__heading {
+  @include type-style('label-01');
+
+  padding: $spacing-04 $spacing-08;
+  margin-top: initial;
+  margin-bottom: initial;
+  color: $text-secondary;
+}
+.#{$block-class}__list {
+  @include type-style('body-compact-01');
+
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+.#{$block-class}__list,
+.#{$block-class}-item {
+  margin-bottom: $spacing-01;
+}
+
+.#{$block-class}__list:focus {
+  outline: 0;
+  outline-width: 0;
+}
+.#{$block-class}__list:focus > .#{$block-class}-item__link {
+  @include utilities.focus-outline('outline');
+}
+
+.#{$block-class}__list__icon {
+  margin-top: $spacing-01;
+  margin-left: auto;
+  transform: $nav__icon__position rotate(0deg);
+  transition: transform $duration-fast-02 motion(standard);
+
+  @include rtl {
+    right: $spacing-02;
+    transform: $nav__icon__position rotate(180deg);
+  }
+}
+
+.#{$block-class}-item {
+  @include type-style('body-short-01');
+
+  position: relative;
+}
+
+.#{$block-class}-item__content {
+  display: flex;
+}
+
+.#{$block-class}-item::before {
+  position: absolute;
+  z-index: utilities.z('floating');
+  top: 0;
+  left: 0;
+
+  display: inline-block;
+  width: $spacing-02;
+  height: 100%;
+  background-color: transparent;
+  content: '';
+  transform: translate3d(-100%, 0, 0);
+  transition: transform $duration-fast-02 motion(standard);
+}
+
+.#{$block-class}-item--disabled {
+  pointer-events: none;
+}
+
+.#{$block-class}-item--disabled > .#{$nav-item}__link {
+  color: $text-on-color-disabled;
+}
+
+.#{$block-class}-item--active {
+  @include font-weight($weight: semibold);
+  @include rtl {
+    &::before {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+.#{$block-class}-item--active::before {
+  background-color: $background-brand;
+  transform: translate3d(0, 0, 0);
+}
+
+.#{$block-class}-item__link {
+  position: relative;
+  display: flex;
+  padding: $spacing-03 $spacing-02 $spacing-03 $spacing-08;
+  color: $text-primary;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color $duration-fast-02 motion(standard);
+}
+
+.#{$block-class}-item__link:hover,
+.#{$block-class}-item__link:focus {
+  background-color: $layer-02;
+}
+
+.#{$block-class}-item__link:focus {
+  @include utilities.focus-outline('outline');
+}
+
+.#{$block-class}-item__img {
+  height: calc($spacing-06 - $spacing-02);
+  margin-right: $spacing-04;
+  margin-left: -$spacing-07;
+}
+
+.#{$block-class}-item__link--external__icon {
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: $spacing-02;
+  fill: $text-primary;
+  opacity: 0;
+}
+
+.#{$block-class}-item__link--external:hover
+  > .#{$block-class}-item__link--external__icon,
+.#{$block-class}-item__link--external:focus
+  > .#{$block-class}-item__link--external__icon {
+  opacity: 1;
+}
+
+.#{$block-class}__list--expanded {
+  margin-bottom: $spacing-03;
+}
+
+.#{$block-class}__list--expanded .#{$nav__list}--nested {
+  max-height: 320px;
+  opacity: 1;
+
+  transition: transform $duration-moderate-01 motion(standard);
+}
+
+.#{$block-class}__list--expanded > .#{$nav-item}__link > .#{$nav__list}__icon {
+  transform: $nav__icon__position rotate(180deg);
+
+  @include rtl {
+    transform: $nav__icon__position rotate(0);
+  }
+}
+
+.#{$block-class}__list--nested {
+  overflow: hidden;
+
+  max-height: 0;
+  padding-left: 0;
+  margin-bottom: 0;
+  opacity: 0;
+
+  @include rtl {
+    padding-right: 0;
+    padding-left: initial;
+  }
+
+  transition: max-height $duration-moderate-01 motion(standard),
+    opacity $duration-moderate-01 motion(standard);
+}
+.#{$block-class}__list--nested > .#{$nav-item}:last-of-type {
+  margin-bottom: $spacing-03;
+}
