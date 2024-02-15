@@ -1,183 +1,196 @@
 /**
- * @file Navigation class.
- * @copyright IBM Security 2019 - 2021
+ * Copyright IBM Corp. 2024, 2024
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
-import classnames from 'classnames';
-import { node, string } from 'prop-types';
-import React, { Children, Component } from 'react';
+// Import portions of React that are needed.
+import React, { useEffect, useState } from 'react';
 
-import NavItem, { blockClass as navItemBlockClass } from './NavItem';
-import NavList from './NavList';
+// Other standard imports.
+import PropTypes from 'prop-types';
+import cx from 'classnames';
 
-// import window from '../../globals/utils/globalRoot';
-// import { getComponentNamespace } from '../../globals/namespace';
+import { getDevtoolsProps } from '../../global/js/utils/devtools';
+import { pkg /*, carbon */ } from '../../settings';
 
-// export const navNamespace = getComponentNamespace('nav');
+// Carbon and package components we use.
+import { NavItem } from './NavItem';
+import { NavList } from './NavList';
 
-import { pkg } from '../../settings';
-
-const componentName = 'Nav';
+// The block part of our conventional BEM class names (blockClass__E--M).
 const blockClass = `${pkg.prefix}--nav`;
 
-export default class Nav extends Component {
-  constructor(props) {
-    super(props);
+const componentName = 'Nav';
 
-    let { activeHref } = this.props;
-    if (!activeHref && window.location) {
-      const { hash, pathname } = window.location;
+// NOTE: the component SCSS is not imported here: it is rolled up separately.
 
-      activeHref = pathname + hash;
-    }
+// Default values can be included here and then assigned to the prop params,
+// e.g. prop = defaults.prop,
+// This gathers default values together neatly and ensures non-primitive
+// values are initialized early to avoid react making unnecessary re-renders.
+// Note that default values are not required for props that are 'required',
+// nor for props where the component can apply undefined values reasonably.
+// Default values should be provided when the component needs to make a choice
+// or assumption when a prop is not supplied.
 
-    this.state = { activeHref };
+// // Default values for props
+// const defaults = {
+//   activeHref:
+// };
 
-    this.handleItemClick = this.handleItemClick.bind(this);
-    this.handleListClick = this.handleListClick.bind(this);
-
-    this.navigationLists = [];
-  }
-
-  /**
-   * Creates a new child list item.
-   * @param {NavItem} child The child list item to create.
-   * @param {number} index The index of the child list item.
-   * @returns {NavItem} The new child list item.
-   */
-  buildNewItemChild({ props }, index) {
-    // console.log('arriving here');
-    const key = `${navItemBlockClass}--${index}`;
-
-    return (
-      <NavItem
-        {...props}
-        activeHref={this.state.activeHref}
-        key={key}
-        onClick={(event, href) => {
-          this.handleItemClick(event, href, props.onClick);
-        }}
-      />
-    );
-  }
-
-  /**
-   * Creates a new child list.
-   * @param {NavList} child The child list to create.
-   * @param {number} index The index of the child list.
-   * @returns {NavList} The new child list.
-   */
-  buildNewListChild({ props }, index) {
-    const key = `${blockClass}__list--${index}`;
-
-    return (
-      <NavList
-        {...props}
-        activeHref={this.state.activeHref}
-        id={key}
-        key={key}
-        onListClick={this.handleListClick}
-        onItemClick={this.handleItemClick}
-        ref={(navigationList) => {
-          this.navigationLists.push(navigationList);
-        }}
-      />
-    );
-  }
-
-  /**
-   * Handles toggling the list item.
-   * @param {SyntheticEvent} event The event fired when the list item is toggled.
-   * @param {string} activeHref The URL of the list item.
-   */
-  handleItemClick(event, activeHref, onClick) {
-    event.stopPropagation();
-
-    const { type, which } = event;
-
-    // Enter (13) and spacebar (32).
-    const acceptableEvent = which === 13 || which === 32 || type === 'click';
-
-    const diffHref = activeHref !== this.state.activeHref;
-    if (acceptableEvent && diffHref) {
-      this.setState({ activeHref });
-    }
-
-    if (onClick) {
-      onClick(event);
-    }
-  }
-
-  /**
-   * Handles when a list has been selected.
-   * @param {number} id The index of the list.
-   */
-  handleListClick(id) {
-    Children.forEach(this.props.children, ({ props, type }, index) => {
-      if (type?.displayName === NavList.displayName) {
-        const childId = `${blockClass}__list--${index}`;
-
-        if (childId !== id && !props.isExpandedOnPageload) {
-          this.navigationLists
-            .find(({ props }) => props.id === childId)
-            .close();
-        }
-      }
-    });
-  }
-
-  render() {
-    const {
-      activeHref: _, // Throw away.
+/**
+ * TODO: A description of the component.
+ */
+export let Nav = React.forwardRef(
+  (
+    {
+      // The component props, in alphabetical order (for consistency).
+      activeHref,
+      children /* TODO: remove if not needed. */,
       className,
-      children,
       heading,
       label,
-      ...other
-    } = this.props;
+      ...rest
+    },
+    ref
+  ) => {
+    const [_activeHref, setActiveHref] = useState(activeHref);
+    const navigationLists = [];
+
+    useEffect(() => {
+      if (!activeHref && window.location) {
+        const { hash, pathname } = window.location;
+        setActiveHref(pathname + hash);
+      }
+    }, [activeHref]);
+
+    const handleListClick = (id) => {
+      console.log('HANDLE LIST CLICK');
+      React.Children.forEach(children, (child, index) => {
+        if (child.displayName === 'NavList') {
+          const childId = `${blockClass}__list--${index}`;
+
+          if (childId !== id && !child?.props?.isExpandedOnPageLoad) {
+            // eslint-disable-next-line react/prop-types
+            navigationLists.find(({ props }) => props.id === childId).close();
+          }
+        }
+      });
+    };
+
+    const handleItemClick = (event, activeHref, onClick) => {
+      if (onClick) {
+        onClick(event);
+      }
+    };
+
+    /**
+     * Creates a new child list.
+     * @param {NavList} child The child list to create.
+     * @param {number} index The index of the child list.
+     * @returns {NavList} The new child list.
+     */
+    const buildNewListChild = ({ props }, index) => {
+      const key = `${blockClass}__list--${index}`;
+      return (
+        <NavList
+          {...props}
+          activeHref={activeHref}
+          id={key}
+          key={key}
+          onListClick={handleListClick}
+          onItemClick={handleItemClick}
+          ref={(navigationList) => {
+            navigationLists.push(navigationList);
+          }}
+        />
+      );
+    };
+
+    /**
+     * Creates a new child list item.
+     * @param {NavItem} child The child list item to create.
+     * @param {number} index The index of the child list item.
+     * @returns {NavItem} The new child list item.
+     */
+    const buildNewItemChild = ({ props }, index) => {
+      const key = `${blockClass}--${index}`;
+
+      return (
+        <NavItem
+          {...props}
+          activeHref={_activeHref}
+          key={key}
+          onClick={(event, href) => {
+            // eslint-disable-next-line react/prop-types
+            handleItemClick(event, href, props.onClick);
+          }}
+        />
+      );
+    };
 
     return (
       <nav
-        className={classnames(blockClass, className)}
+        {
+          // Pass through any other property values as HTML attributes.
+          ...rest
+        }
+        className={cx(
+          blockClass, // Apply the block class to the main HTML element
+          className, // Apply any supplied class names to the main HTML element.
+          // example: `${blockClass}__template-string-class-${kind}-n-${size}`,
+          {
+            // switched classes dependant on props or state
+            // example: [`${blockClass}__here-if-small`]: size === 'sm',
+          }
+        )}
+        ref={ref}
+        role="navigation"
         aria-label={label}
-        {...other}
+        {...getDevtoolsProps(componentName)}
       >
         {heading && <h1 className={`${blockClass}__heading`}>{heading}</h1>}
 
         <ul className={`${blockClass}__wrapper`} role="menubar">
           {React.Children.map(children, (child, index) => {
-            return child.type?.displayName === NavList.displayName
-              ? this.buildNewListChild(child, index)
-              : this.buildNewItemChild(child, index);
+            return child.type.displayName === 'NavList'
+              ? buildNewListChild(child, index)
+              : buildNewItemChild(child, index);
           })}
         </ul>
       </nav>
     );
   }
-}
+);
 
-Nav.defaultProps = {
-  activeHref: undefined,
-  children: null,
-  className: '',
-  heading: null,
-};
+// Return a placeholder if not released and not enabled by feature flag
+Nav = pkg.checkComponentEnabled(Nav, componentName);
 
-Nav.propTypes = {
-  /** @type {string} Hypertext reference for active page. */
-  activeHref: string,
-
-  /** @type {Node} Child elements. */
-  children: node,
-
-  /** @type {string} Extra classes to add. */
-  className: string,
-
-  /** @type {string} Heading */
-  heading: string,
-
-  /** @type {string} Aria-label on the rendered `nav` element. */
-  label: string.isRequired,
-};
-
+// The display name of the component, used by React. Note that displayName
+// is used in preference to relying on function.name.
 Nav.displayName = componentName;
+
+// The types and DocGen commentary for the component props,
+// in alphabetical order (for consistency).
+// See https://www.npmjs.com/package/prop-types#usage.
+Nav.propTypes = {
+  /** Hypertext reference for active page. */
+  activeHref: PropTypes.string,
+  /**
+   * Provide the contents of the Nav.
+   */
+  children: PropTypes.node.isRequired,
+
+  /**
+   * Provide an optional class to be applied to the containing node.
+   */
+  className: PropTypes.string,
+
+  /** Heading */
+  heading: PropTypes.string,
+
+  /** Aria-label on the rendered `nav` element. */
+  label: PropTypes.string.isRequired,
+};

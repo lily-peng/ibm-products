@@ -1,3 +1,4 @@
+/* stylelint-disable max-nesting-depth */
 //
 // Copyright IBM Corp. 2024, 2024
 //
@@ -15,10 +16,10 @@
 @use '../../global/styles/project-settings' as c4p-settings;
 @use '../../global/styles/mixins';
 @use '@carbon/styles/scss/utilities';
-
+@use '@carbon/layout/scss/convert' as *;
 // Other Carbon settings if needed
-@import '@carbon/themes/scss/tokens';
-@import '@carbon/type/scss/styles';
+// @import '@carbon/themes/scss/tokens';
+// @import '@carbon/type/scss/styles';
 
 $block-class: #{c4p-settings.$pkg-prefix}--nav;
 $nav-list-block-class: #{c4p-settings.$pkg-prefix}--nav-list;
@@ -79,6 +80,7 @@ $nav__icon__position: translate3d(-50%, 0, 0);
 
 .#{$block-class}__heading {
   @include type.type-style('caption-01');
+
   padding: $spacing-04 $spacing-08;
   margin-top: unset;
   margin-bottom: unset;
@@ -110,33 +112,32 @@ $nav__icon__position: translate3d(-50%, 0, 0);
   }
 
   &__icon {
-    transition-duration: 240ms;
-    transition-property: transform;
-    transition-timing-function: cubic-bezier(0.2, 0, 0.38, 0.9);
     margin-top: $spacing-01;
     margin-left: auto;
     transform: $nav__icon__position rotate(0deg);
-    // @include rtl {
-    //   right: $spacing-02;
-    //   transform: $nav__icon__position rotate(180deg);
-    // }
+    transition-duration: 240ms;
+    transition-property: transform;
+    transition-timing-function: cubic-bezier(0.2, 0, 0.38, 0.9);
+
+    @include rtl {
+      right: $spacing-02;
+      transform: $nav__icon__position rotate(180deg);
+    }
   }
 
   &--nested {
-    transition-duration: 240ms;
-    $transition-property: (max-height, opacity);
-
     overflow: hidden;
-
     max-height: 0;
     padding-left: 0;
     margin-bottom: 0;
     opacity: 0;
 
-    // @include rtl {
-    //   padding-right: 0;
-    //   padding-left: unset;
-    // }
+    transition-duration: 240ms;
+    $transition-property: (max-height, opacity);
+    @include rtl {
+      padding-right: 0;
+      padding-left: unset;
+    }
 
     > #{$nav-item-block-class}:last-of-type {
       margin-bottom: $spacing-03;
@@ -156,7 +157,6 @@ $nav__icon__position: translate3d(-50%, 0, 0);
   }
 
   &::before {
-    transition-property: transform;
     position: absolute;
     // z-index: z($layer: floating);
     top: 0;
@@ -168,6 +168,7 @@ $nav__icon__position: translate3d(-50%, 0, 0);
     background-color: transparent;
     content: '';
     transform: translate3d(-100%, 0, 0);
+    transition-property: transform;
   }
 
   &--disabled {
@@ -181,11 +182,11 @@ $nav__icon__position: translate3d(-50%, 0, 0);
   &--active {
     @include font-family.font-weight('semibold');
 
-    // @include rtl {
-    //   &::before {
-    //     transform: translate3d(0, 0, 0);
-    //   }
-    // }
+    @include rtl {
+      &::before {
+        transform: translate3d(0, 0, 0);
+      }
+    }
 
     &::before {
       background-color: $background-brand;
@@ -206,9 +207,9 @@ $nav__icon__position: translate3d(-50%, 0, 0);
     > .#{$nav-item-block-class}__link > .#{$nav-list-block-class}__icon {
       transform: $nav__icon__position rotate(180deg);
 
-      // @include rtl {
-      //   transform: $nav__icon__position rotate(0);
-      // }
+      @include rtl {
+        transform: $nav__icon__position rotate(0);
+      }
     }
   }
 

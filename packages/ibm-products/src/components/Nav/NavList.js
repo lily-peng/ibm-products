@@ -1,140 +1,115 @@
 /**
- * @file Navigation list class.
- * @copyright IBM Security 2019 - 2021
+ * Copyright IBM Corp. 2024, 2024
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
-import React, { Component } from 'react';
-import { ChevronDown } from '@carbon/icons-react';
-import classnames from 'classnames';
-import { bool, func, node, number, string } from 'prop-types';
+// Import portions of React that are needed.
+import React, { useState, useEffect } from 'react';
+import { ChevronDown } from '@carbon/react/icons';
+// Other standard imports.
+import PropTypes from 'prop-types';
+import cx from 'classnames';
 
-// import { getComponentNamespace } from '../../../globals/namespace';
+import { getDevtoolsProps } from '../../global/js/utils/devtools';
+import { pkg /*, carbon */ } from '../../settings';
 
-// import Icon from '../../Icon';
-import NavItem, { blockClass as navItemBlockClass } from './NavItem';
-
-// export const navListNamespace = getComponentNamespace('nav__list');
-import { pkg } from '../../settings';
-
-const componentName = 'NavList';
+// Carbon and package components we use.
+import { NavItem } from './NavItem';
+// The block part of our conventional BEM class names (blockClass__E--M).
 const blockClass = `${pkg.prefix}--nav-list`;
+const navItemBlockClass = `${pkg.prefix}--nav-item`;
+const componentName = 'NavList';
 
-// export const NavList = ({
-//   activeHref = '#',
-//   children,
-//   className = '',
-//   icon = '',
-//   id = '',
-//   isExpandedOnPageload = false,
-//   navigationItemTitle = '',
-//   onItemClick = () => {},
-//   onListClick = () => {},
-//   tabIndex = 0,
-//   title = '',
-// }) => {
-//   const [open, setOpen] = useState(isExpandedOnPageload);
+// NOTE: the component SCSS is not imported here: it is rolled up separately.
 
-// };
+// Default values can be included here and then assigned to the prop params,
+// e.g. prop = defaults.prop,
+// This gathers default values together neatly and ensures non-primitive
+// values are initialized early to avoid react making unnecessary re-renders.
+// Note that default values are not required for props that are 'required',
+// nor for props where the component can apply undefined values reasonably.
+// Default values should be provided when the component needs to make a choice
+// or assumption when a prop is not supplied.
 
-export default class NavList extends Component {
-  constructor(props) {
-    super(props);
+// Default values for props
+const defaults = {
+  activeHref: '#',
+  isExpandedOnPageLoad: false,
+  onItemClick: () => {},
+  onListClick: () => {},
+  tabIndex: 0,
+};
 
-    const { activeHref, children } = this.props;
-    let { isExpandedOnPageload: open } = this.props;
+/**
+ * TODO: A description of the component.
+ */
+export let NavList = React.forwardRef(
+  (
+    {
+      // The component props, in alphabetical order (for consistency).
+      activeHref = defaults.activeHref,
+      children /* TODO: remove if not needed. */,
+      className,
 
-    // Reads all children, filters out children without HREF attributes, and creates an array of HREF strings.
-    if (!open) {
-      const hrefs = React.Children.toArray(children)
-        .filter(
-          ({ props: childProps }) =>
-            childProps.href && childProps.href.length > 0
-        )
-        .map(({ props: childProps }) => childProps.href);
+      icon,
+      id,
+      isExpandedOnPageLoad = defaults.isExpandedOnPageLoad,
+      navigationItemTitle,
+      onItemClick = defaults.onItemClick,
+      onListClick = defaults.onListClick,
+      tabIndex = defaults.tabIndex,
+      title,
+      /* TODO: add other props for Nav, with default values if needed */
 
-      open = hrefs.includes(activeHref);
-    }
+      // Collect any other property values passed in.
+      ...rest
+    },
+    ref
+  ) => {
+    const [isOpen, setIsOpen] = useState(isExpandedOnPageLoad);
+    console.log('activeHref in NavList is: ', activeHref);
+    useEffect(() => {
+      setIsOpen(isExpandedOnPageLoad);
+    }, [isExpandedOnPageLoad]);
 
-    this.state = { open };
+    const toggle = (evt) => {
+      const { key, type } = evt;
 
-    this.buildNewItemChild = this.buildNewItemChild.bind(this);
-    this.toggle = this.toggle.bind(this);
-  }
-
-  /**
-   * Creates a new child list item.
-   * @param {NavItem} child The child list item to create.
-   * @param {number} index The index of the child list item.
-   * @returns {NavItem} The new child list item.
-   */
-  buildNewItemChild({ props }, index) {
-    const { onItemClick, activeHref } = this.props;
-
-    const { onClick } = props;
-
-    return (
-      <NavItem
-        {...props}
-        key={`${navItemBlockClass}--${index}`}
-        onClick={(event, href) => {
-          onItemClick(event, href);
-
-          if (onClick) {
-            onClick(event);
-          }
-        }}
-        activeHref={activeHref}
-        tabIndex={this.state.open ? 0 : -1}
-      />
-    );
-  }
-
-  /**
-   * Closes the list.
-   */
-  close() {
-    if (this.state.open) {
-      this.setState({ open: false });
-    }
-  }
-
-  /**
-   * Handles toggling the list.
-   * @param {SyntheticEvent} event The event fired when the list is toggled.
-   */
-  toggle({ which, type }) {
-    const { open } = this.state;
-    const { id, onListClick } = this.props;
-
-    // Enter (13) and spacebar (32).
-    if (which === 13 || which === 32 || type === 'click') {
-      if (!open) {
-        onListClick(id);
+      if (
+        (type === 'keydown' && (key === 'Enter' || key === ' ')) ||
+        type === 'click'
+      ) {
+        if (!isOpen) {
+          onListClick(id);
+        }
+        setIsOpen((prev) => !prev);
       }
-      this.setState({ open: !open });
-    }
-  }
+    };
 
-  render() {
-    const { className, children, icon, tabIndex, title, navigationItemTitle } =
-      this.props;
-    const { open } = this.state;
+    // useEffect(() => {
+    //   const allLinks = React.Children.toArray(children)
+    //     .filter(
+    //       ({ props: childProps }) =>
+    //         childProps.href && childProps.href.length > 0
+    //     )
+    //     .map(({ props: childProps }) => childProps.href);
 
-    const classNames = classnames(blockClass, className, {
-      [`${navItemBlockClass}--expanded`]: open,
-    });
-
-    const newChildren = React.Children.map(children, (child, index) =>
-      this.buildNewItemChild(child, index)
-    );
-
+    //   setIsOpen(allLinks.includes(activeHref));
+    // }, [activeHref, children]);
     return (
       <li
-        className={classNames}
+        {...rest}
+        className={cx(blockClass, className, {
+          [`${navItemBlockClass}--expanded`]: isOpen,
+        })}
+        ref={ref}
+        onKeyDown={toggle}
         tabIndex={tabIndex}
-        onClick={this.toggle}
-        onKeyPress={this.toggle}
+        onClick={toggle}
         role="menuitem"
+        {...getDevtoolsProps(componentName)}
       >
         <div className={`${navItemBlockClass}__link`}>
           {icon && (
@@ -145,7 +120,7 @@ export default class NavList extends Component {
             />
           )}
           <div className={`${navItemBlockClass}__content`}>{title}</div>
-          <ChevronDown className={`${blockClass}__icon`} />
+          <ChevronDown className={`${blockClass}__icon`} size={16} />
         </div>
         <ul
           aria-label={title}
@@ -153,60 +128,69 @@ export default class NavList extends Component {
           className={`${blockClass} ${blockClass}--nested`}
           role="menu"
         >
-          {newChildren}
+          {React.Children.map(children, (child, index) => {
+            return (
+              <NavItem
+                {...child.props}
+                key={`${navItemBlockClass}--${index}`}
+                onClick={(event, href) => {
+                  onItemClick(event, href);
+
+                  // eslint-disable-next-line no-undef
+                  if (onClick) {
+                    // eslint-disable-next-line no-undef
+                    onClick(event);
+                  }
+                }}
+                activeHref={activeHref}
+                tabIndex={isOpen ? 0 : -1}
+              />
+            );
+          })}
         </ul>
       </li>
     );
   }
-}
+);
 
-NavList.defaultProps = {
-  activeHref: '#',
-  className: '',
-  children: null,
-  id: '',
-  isExpandedOnPageload: false,
-  onItemClick: () => {},
-  onListClick: () => {},
-  tabIndex: 0,
-  title: '',
-  icon: '',
-  navigationItemTitle: '',
-};
+// The display name of the component, used by React. Note that displayName
+// is used in preference to relying on function.name.
+NavList.displayName = componentName;
 
+// The types and DocGen commentary for the component props,
+// in alphabetical order (for consistency).
+// See https://www.npmjs.com/package/prop-types#usage.
 NavList.propTypes = {
-  /** @type {string} Hypertext reference for active page. */
-  activeHref: string,
+  /** Hypertext reference for active page. */
+  activeHref: PropTypes.string,
 
-  /** @type {Node} Child elements. */
-  children: node,
+  /** Child elements. */
+  children: PropTypes.node,
 
-  /** @type {string} Extra classes to add. */
-  className: string,
+  /** Extra classes to add. */
+  className: PropTypes.string,
 
-  /** @type {string} Icon of a list. */
-  icon: string,
+  /** Icon of a list. */
+  icon: PropTypes.string,
 
-  /** @type {string} ID of a list. */
-  id: string,
+  /** ID of a list. */
+  id: PropTypes.string,
 
-  /** @type {boolean} State of a list. */
-  isExpandedOnPageload: bool,
+  /** State of a list. */
+  isExpandedOnPageLoad: PropTypes.bool,
 
-  /** @type {boolean} Title of nav. */
-  navigationItemTitle: string,
+  /** Title of nav. */
+  navigationItemTitle: PropTypes.string,
 
-  /** @type {Function} Click handler for an item. */
-  onItemClick: func,
+  /** Click handler for an item. */
+  onItemClick: PropTypes.func,
 
-  /** @type {Function} Click handler for a list. */
-  onListClick: func,
+  /** Click handler for a list. */
+  onListClick: PropTypes.func,
 
-  /** @type {number} `tabindex` of an item. */
-  tabIndex: number,
+  /** `tabindex` of an item. */
+  tabIndex: PropTypes.number,
 
-  /** @type {string} Label of the list. */
-  title: string,
+  /** Label of the list. */
+  title: PropTypes.string,
 };
-
-NavList.displayName = 'NavList';

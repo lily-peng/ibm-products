@@ -1,156 +1,103 @@
 /**
- * @file Navigation item class.
- * @copyright IBM Security 2019 - 2021
+ * Copyright IBM Corp. 2024, 2024
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
-import { Launch } from '@carbon/icons-react';
-// import setupGetInstanceId from 'carbon-components-react/es/tools/setupGetInstanceId';
-import classnames from 'classnames';
-import { bool, elementType, func, node, number, string } from 'prop-types';
+// Import portions of React that are needed.
+import React, { useEffect, useState, useRef } from 'react';
+
+// Other standard imports.
+import PropTypes from 'prop-types';
+import cx from 'classnames';
+
+import { getDevtoolsProps } from '../../global/js/utils/devtools';
+import { pkg /*, carbon */ } from '../../settings';
+
+// Carbon and package components we use.
+import { Launch } from '@carbon/react/icons';
 import uuidv4 from '../../global/js/utils/uuidv4';
-import React, { Component, useRef } from 'react';
-
-// import Icon from '../../Icon';
-import NavItemLink from './NavItemLink';
-
-// import { getComponentNamespace } from '../../../globals/namespace';
-
-// const getInstanceId = setupGetInstanceId();
-
-// export const namespace = getComponentNamespace('nav__list__item');
-import { pkg } from '../../settings';
-
-const componentName = 'NavItem';
+import { NavItemLink } from './NavItemLink';
+// The block part of our conventional BEM class names (blockClass__E--M).
 export const blockClass = `${pkg.prefix}--nav-item`;
-
+const componentName = 'NavItem';
+// Default values for props
+const defaults = {
+  activeHref: '#',
+  current: null,
+  disabled: false,
+  element: 'a',
+  handleItemSelect: null,
+  href: undefined,
+  id: null,
+  label: '',
+  link: true,
+  onClick: () => {},
+  tabIndex: 0,
+};
 /**
  * Navigation item component.
  */
-export default class NavItem extends Component {
-  static propTypes = {
-    /** @type {string} Hypertext reference for active page. */
-    activeHref: string,
-
-    /** @type {Node} Children. */
-    children: node,
-
-    /** @type {string} Extra classes to add. */
-    className: string,
-
-    /** @type {string} Currently selected item. */
-    current: string,
-
-    /** @type {bool} Whether the item is disabled. */
-    disabled: bool,
-
-    /** @type {elementType} The base element to use to build the link. Defaults to `a`, can also accept alternative tag names or custom components like `Link` from `react-router`. */
-    element: elementType,
-
-    /** @type {Function} Click handler of an item. */
-    handleItemSelect: func,
-
-    /** @type {string} The href of the nav item. */
-    href: string,
-
-    /** @type {string} Identifier. */
-    id: string,
-
-    /** @type {string} Label of an item. */
-    label: string,
-
-    /** @type {bool} Whether the item is a link. */
-    link: bool,
-
-    /** @type {Function} Click handler of an item. */
-    onClick: func,
-
-    /** @type {number} `tabindex` of an item. */
-    tabIndex: number,
-  };
-
-  static defaultProps = {
-    activeHref: '#',
-    children: null,
-    className: '',
-    current: null,
-    disabled: false,
-    element: 'a',
-    handleItemSelect: null,
-    href: undefined,
-    id: null,
-    label: 'hello', //TODO
-    link: true,
-    onClick: () => {},
-    tabIndex: 0,
-  };
-
-  state = {
-    current: this.props.current,
-  };
-
-  static getDerivedStateFromProps(props, state) {
-    return props.current === state.current ? null : { current: props.current };
-  }
-
-  instanceId = `${blockClass}__${uuidv4()}`;
-
-  render() {
-    const {
-      className,
-      element,
-      tabIndex,
-      children,
-      disabled,
-      label,
-      onClick,
-      href,
+export let NavItem = React.forwardRef(
+  (
+    {
+      // The component props, in alphabetical order (for consistency).
       activeHref,
-      current: _, // Throw away.
+      children /* TODO: remove if not needed. */,
+      className,
+      current,
+      disabled,
+      element,
       handleItemSelect,
-      link,
+      href,
       id,
-      ...other
-    } = this.props;
+      label,
+      link,
+      onClick,
+      tabIndex,
+      /* TODO: add other props for Nav, with default values if needed */
 
+      // Collect any other property values passed in.
+      ...rest
+    },
+    ref
+  ) => {
+    const [isCurrentNavItem, setIsCurrentNavItem] = useState(false);
+
+    const internalId = useRef(uuidv4());
+    const instanceId = `${blockClass}__${internalId.current}`;
     const isAbsoluteLink = new RegExp('^([a-z]+://|//)', 'i');
+
     const externalLink =
       isAbsoluteLink.test(href) && href.indexOf(window.location.host) === -1;
+    const navItemId = id || instanceId;
+    const linkClassName = `${blockClass}__link`;
 
-    const navItemId = id || this.instanceId;
-
-    const classNames = classnames(blockClass, className, {
-      [`${blockClass}--active`]:
-        (this.state.current !== null && this.state.current === navItemId) ||
-        (activeHref !== undefined && activeHref === href && !externalLink),
-      [`${blockClass}--disabled`]: disabled,
-    });
-
+    const handleDisabled = (action, defaultValue = null) =>
+      !disabled ? action : defaultValue;
+    const navItemTabIndex = handleDisabled(tabIndex, -1);
     const externalLinkProps = externalLink && {
       rel: 'noopener noreferrer',
       target: '_blank',
     };
 
-    const handleDisabled = (action, defaultValue = null) =>
-      !disabled ? action : defaultValue;
-
-    const linkClassName = `${blockClass}__link`;
-
-    const navItemTabIndex = handleDisabled(tabIndex, -1);
-
-    // console.log('Children:', this.props.children);
-    // console.log('ClassNames:', this.props.className);
-    // console.log('Label:', this.props.label);
-    // console.log('Link:', this.props.link);
+    useEffect(() => {
+      setIsCurrentNavItem(
+        current === navItemId || (activeHref === href && !externalLink)
+      );
+    }, [current, navItemId]);
 
     return (
-      // <>NavItem here</>
-
       <li
-        className={classNames}
-        label={label}
-        onClick={(event) => handleDisabled(onClick(event, href))}
-        onKeyPress={(event) => handleDisabled(onClick(event, href))}
-        role="menuitem"
+        {...rest}
+        className={cx(blockClass, className, {
+          [`${blockClass}--active`]: isCurrentNavItem,
+          [`${blockClass}--disabled`]: disabled,
+        })}
+        ref={ref}
+        role="main"
+        {...getDevtoolsProps(componentName)}
       >
         {link ? (
           <NavItemLink
@@ -166,7 +113,10 @@ export default class NavItem extends Component {
           >
             {children}
             {externalLink && (
-              <Launch className={`${blockClass}__link--external__icon`} />
+              <Launch
+                className={`${blockClass}__link--external__icon`}
+                size={16}
+              />
             )}
           </NavItemLink>
         ) : (
@@ -174,7 +124,7 @@ export default class NavItem extends Component {
             id={navItemId}
             className={linkClassName}
             onClick={handleDisabled(handleItemSelect)}
-            onKeyPress={handleDisabled(handleItemSelect)}
+            // onKeyPress={handleDisabled(handleItemSelect)} // DEPRECATED... FIX THIS
             role="menuitem"
             tabIndex={navItemTabIndex}
           >
@@ -184,4 +134,73 @@ export default class NavItem extends Component {
       </li>
     );
   }
-}
+);
+
+// The display name of the component, used by React. Note that displayName
+// is used in preference to relying on function.name.
+NavItem.displayName = componentName;
+
+// The types and DocGen commentary for the component props,
+// in alphabetical order (for consistency).
+// See https://www.npmjs.com/package/prop-types#usage.
+NavItem.propTypes = {
+  /**
+   * Hypertext reference for active page.
+   */
+  activeHref: PropTypes.string,
+  /**
+   * Provide the contents of the Nav.
+   */
+  children: PropTypes.node.isRequired,
+  /**
+   * Provide an optional class to be applied to the containing node.
+   */
+  className: PropTypes.string,
+  /**
+   * Currently selected item.
+   */
+  current: PropTypes.string,
+  /**
+   * Whether the item is disabled.
+   */
+  disabled: PropTypes.bool,
+  /**
+   * The base element to use to build the link. Defaults to `a`, can also accept alternative tag names or custom components like `Link` from `react-router`.
+   */
+  element: PropTypes.elementType,
+
+  /**
+   * Click handler of an item.
+   */
+  handleItemSelect: PropTypes.func,
+
+  /**
+   * The href of the nav item.
+   */
+  href: PropTypes.string,
+
+  /**
+   * Identifier.
+   */
+  id: PropTypes.string,
+
+  /**
+   * Label of an item.
+   */
+  label: PropTypes.string,
+
+  /**
+   * Whether the item is a link.
+   */
+  link: PropTypes.bool,
+
+  /**
+   * Click handler of an item.
+   */
+  onClick: PropTypes.func,
+
+  /**
+   * `tabindex` of an item.
+   */
+  tabIndex: PropTypes.number,
+};

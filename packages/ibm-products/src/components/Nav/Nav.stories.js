@@ -13,9 +13,9 @@ import {
   prepareStory,
 } from '../../global/js/utils/story-helper';
 
-import Nav from './Nav';
-import NavItem from './NavItem';
-import NavList from './NavList';
+import { Nav } from './Nav';
+import { NavItem } from './NavItem';
+import { NavList } from './NavList';
 import mdx from './Nav.mdx';
 
 import styles from './_storybook-styles.scss';
@@ -32,6 +32,7 @@ export default {
   //   egProp: { control: 'color' },
   // },
   parameters: {
+    layout: 'fullscreen',
     styles,
     docs: {
       page: mdx,
@@ -39,39 +40,49 @@ export default {
   },
 };
 
+const mainContent = [
+  <NavList key="0" title="Nav list 1">
+    <NavItem key="navitem_1-1" element="span" customprop="uniqueValue">
+      Nav item 1-1 (with a custom element)
+    </NavItem>
+    <NavItem key="navitem_1-2" onClick={action('onClick')}>
+      Nav item 1-2
+    </NavItem>
+  </NavList>,
+  <NavList
+    key="1"
+    title="Nav list 2 expanded on page load"
+    isExpandedOnPageLoad={true}
+  >
+    <NavItem key="navitem_2-1" href="#navitem_2-1">
+      Nav item 2-1
+    </NavItem>
+    <NavItem key="navitem_2-2" href="#navitem_2-2">
+      Nav item 2-2
+    </NavItem>
+  </NavList>,
+  <NavList key="3" title="Nav list 3">
+    <NavItem key="navitem_3-1" href="#navitem_3-1">
+      Nav item 3-1
+    </NavItem>
+    <NavItem key="navitem_3-2" href="https://www.ibm.com/">
+      Nav item that is an external link and wraps to a new line
+    </NavItem>
+  </NavList>,
+];
+
 /**
  * TODO: Declare template(s) for one or more scenarios.
  */
 const Template = (args) => {
   return (
-    <div style={{ width: '300px' }}>
-      <Nav heading="Nav example" label="Navigation">
-        <NavList title="Nav list 1">
-          <NavItem key="navitem_1-1" element="span" customprop="uniqueValue">
-            Nav item 1-1 (with a custom element)
-          </NavItem>
-          <NavItem key="navitem_1-2" onClick={action('onClick')}>
-            Nav item 1-2
-          </NavItem>
-        </NavList>
-        <NavList title="Nav list 2 expanded on page load" isExpandedOnPageload>
-          <NavItem key="navitem_2-1" href="#navitem_2-1">
-            Nav item 2-1
-          </NavItem>
-          <NavItem key="navitem_2-2" href="#navitem_2-2">
-            Nav item 2-2
-          </NavItem>
-        </NavList>
-        <NavList title="Nav list 3">
-          <NavItem key="navitem_3-1" href="#navitem_3-1">
-            Nav item 3-1
-          </NavItem>
-          <NavItem key="navitem_3-2" href="https://www.ibm.com/">
-            Nav item that is an external link and wraps to a new line
-          </NavItem>
-        </NavList>
-      </Nav>
-    </div>
+    <Nav
+      // TODO: handle events with action or local handler.
+      // onTodo={action('onTodo log action')}
+      {...args}
+    >
+      {mainContent}
+    </Nav>
   );
 };
 
@@ -82,7 +93,7 @@ const Template = (args) => {
 export const nav = prepareStory(Template, {
   args: {
     // TODO: Component args - https://storybook.js.org/docs/react/writing-stories/args#Nav-args
-    children: 'hello, world',
-    label: 'test',
+    label: 'Label copy',
+    heading: 'Heading copy',
   },
 });
