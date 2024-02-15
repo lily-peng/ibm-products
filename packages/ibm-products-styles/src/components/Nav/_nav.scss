@@ -32,6 +32,15 @@ $nav__wrapper: '#{&}__wrapper';
 /// @type Length
 $nav__icon__position: translate3d(-50%, 0, 0);
 
+@mixin rtl {
+  $rtl: '[dir="rtl"]';
+
+  &#{$rtl},
+  #{$rtl} & {
+    @content;
+  }
+}
+
 .#{$block-class} {
   position: relative;
 }
