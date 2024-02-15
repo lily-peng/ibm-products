@@ -76,13 +76,15 @@ const mainContent = [
  */
 const Template = (args) => {
   return (
-    <Nav
-      // TODO: handle events with action or local handler.
-      // onTodo={action('onTodo log action')}
-      {...args}
-    >
-      {mainContent}
-    </Nav>
+    <div style={{ width: '300px' }}>
+      <Nav
+        // TODO: handle events with action or local handler.
+        // onTodo={action('onTodo log action')}
+        {...args}
+      >
+        {mainContent}
+      </Nav>
+    </div>
   );
 };
 

@@ -28,9 +28,6 @@ const defaults = {
   current: null,
   disabled: false,
   element: 'a',
-  handleItemSelect: null,
-  href: undefined,
-  id: null,
   label: '',
   link: true,
   onClick: () => {},
@@ -43,19 +40,19 @@ export let NavItem = React.forwardRef(
   (
     {
       // The component props, in alphabetical order (for consistency).
-      activeHref,
+      activeHref = defaults.activeHref,
       children /* TODO: remove if not needed. */,
       className,
-      current,
-      disabled,
-      element,
+      current = defaults.current,
+      disabled = defaults.disabled,
+      element = defaults.element,
       handleItemSelect,
       href,
       id,
-      label,
-      link,
-      onClick,
-      tabIndex,
+      label = defaults.label,
+      link = defaults.link,
+      onClick = defaults.onClick,
+      tabIndex = defaults.tabIndex,
       /* TODO: add other props for Nav, with default values if needed */
 
       // Collect any other property values passed in.
@@ -86,29 +83,30 @@ export let NavItem = React.forwardRef(
       setIsCurrentNavItem(
         current === navItemId || (activeHref === href && !externalLink)
       );
-    }, [current, navItemId]);
+    }, [current, navItemId, activeHref, href, externalLink]);
 
     return (
       <li
-        {...rest}
+        label={label}
         className={cx(blockClass, className, {
           [`${blockClass}--active`]: isCurrentNavItem,
           [`${blockClass}--disabled`]: disabled,
         })}
         ref={ref}
-        role="main"
         {...getDevtoolsProps(componentName)}
       >
         {link ? (
           <NavItemLink
             id={navItemId}
-            className={classnames(linkClassName, {
+            className={cx(linkClassName, {
               [`${blockClass}__link--external`]: externalLink,
             })}
             element={element}
             href={href}
             tabIndex={navItemTabIndex}
-            {...other}
+            onClick={(event) => handleDisabled(onClick(event, href))}
+            onKeyDown={(event) => handleDisabled(onClick(event, href))}
+            {...rest}
             {...externalLinkProps}
           >
             {children}
@@ -124,7 +122,7 @@ export let NavItem = React.forwardRef(
             id={navItemId}
             className={linkClassName}
             onClick={handleDisabled(handleItemSelect)}
-            // onKeyPress={handleDisabled(handleItemSelect)} // DEPRECATED... FIX THIS
+            onKeyDown={handleDisabled(handleItemSelect)}
             role="menuitem"
             tabIndex={navItemTabIndex}
           >

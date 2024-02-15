@@ -67,7 +67,6 @@ export let Nav = React.forwardRef(
     }, [activeHref]);
 
     const handleListClick = (id) => {
-      console.log('HANDLE LIST CLICK');
       React.Children.forEach(children, (child, index) => {
         if (child.displayName === 'NavList') {
           const childId = `${blockClass}__list--${index}`;
@@ -81,6 +80,13 @@ export let Nav = React.forwardRef(
     };
 
     const handleItemClick = (event, activeHref, onClick) => {
+      event.stopPropagation();
+      const { type, which } = event;
+      const acceptableEvent = which === 13 || which === 32 || type === 'click';
+      const diffHref = activeHref !== this.state.activeHref;
+      if (acceptableEvent && diffHref) {
+        this.setState({ activeHref });
+      }
       if (onClick) {
         onClick(event);
       }
@@ -97,7 +103,7 @@ export let Nav = React.forwardRef(
       return (
         <NavList
           {...props}
-          activeHref={activeHref}
+          activeHref={_activeHref}
           id={key}
           key={key}
           onListClick={handleListClick}
