@@ -27,8 +27,6 @@ const componentName = 'NavItem';
 const defaults = {
   activeHref: '#',
   disabled: false,
-  element: 'a',
-  link: true,
   onClick: () => {},
   tabIndex: 0,
 };
@@ -42,12 +40,10 @@ export const NavItem = ({
   className,
   current,
   disabled = defaults.disabled,
-  element = defaults.element,
   handleItemSelect,
   href,
   id,
   label,
-  link = defaults.link,
   onClick = defaults.onClick,
   tabIndex = defaults.tabIndex,
   // Collect any other property values passed in.
@@ -63,6 +59,7 @@ export const NavItem = ({
   const linkClassName = `${blockClass}__link`;
 
   const handleDisabled = (action, defaultValue = null) => {
+    console.log(`clicked item`);
     return !disabled ? action : defaultValue;
   };
 
@@ -84,38 +81,24 @@ export const NavItem = ({
       })}
       label={label}
       onClick={(event) => handleDisabled(onClick(event, href))}
-      onKeyPress={(event) => handleDisabled(onClick(event, href))}
+      onKeyDown={(event) => handleDisabled(onClick(event, href))}
       role="menuitem"
     >
-      {link ? (
-        <NavItemLink
-          id={navItemId}
-          className={cx(linkClassName, {
-            [`${blockClass}__link--external`]: externalLink,
-          })}
-          element={element}
-          href={href}
-          tabIndex={navItemTabIndex}
-          {...rest}
-          {...externalLinkProps}
-        >
-          {children}
-          {externalLink && (
-            <Launch className={`${blockClass}__link--external__icon`} />
-          )}
-        </NavItemLink>
-      ) : (
-        <div
-          id={navItemId}
-          className={linkClassName}
-          onClick={handleDisabled(handleItemSelect)}
-          onKeyPress={handleDisabled(handleItemSelect)}
-          role="menuitem"
-          tabIndex={navItemTabIndex}
-        >
-          {children}
-        </div>
-      )}
+      <a
+        id={navItemId}
+        className={cx(linkClassName, {
+          [`${blockClass}__link--external`]: externalLink,
+        })}
+        href={href}
+        tabIndex={navItemTabIndex}
+        {...rest}
+        {...externalLinkProps}
+      >
+        {children}
+        {externalLink && (
+          <Launch className={`${blockClass}__link--external__icon`} />
+        )}
+      </a>
     </li>
   );
 };
@@ -148,10 +131,6 @@ NavItem.propTypes = {
    * Whether the item is disabled.
    */
   disabled: PropTypes.bool,
-  /**
-   * The base element to use to build the link. Defaults to `a`, can also accept alternative tag names or custom components like `Link` from `react-router`.
-   */
-  element: PropTypes.elementType,
 
   /**
    * Click handler of an item.
@@ -172,11 +151,6 @@ NavItem.propTypes = {
    * Label of an item.
    */
   label: PropTypes.string,
-
-  /**
-   * Whether the item is a link.
-   */
-  link: PropTypes.bool,
 
   /**
    * Click handler of an item.

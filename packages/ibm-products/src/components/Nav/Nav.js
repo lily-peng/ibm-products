@@ -123,6 +123,7 @@ export let Nav = React.forwardRef(
               ? buildNewListChild(child, index)
               : buildNewItemChild(child, index);
           })}
+          {/* {children} */}
         </ul>
       </nav>
     );
